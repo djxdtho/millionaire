@@ -1,0 +1,11 @@
+{
+  "name": "millionaire",
+  "private": true,
+  "workspaces": ["packages/*", "backend", "apps/*"],
+  "scripts": {
+    "dev:web": "npm run dev -w apps/web",
+    "dev:backend": "npm run dev -w backend",
+    "build": "npm run build -w packages/engine && npm run build -w backend && npm run build -w apps/web",
+    "typecheck": "npm run typecheck -w packages/engine && npm run typecheck -w backend && npm run typecheck -w apps/web"
+  }
+}

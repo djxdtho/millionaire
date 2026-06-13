@@ -1,0 +1,1 @@
+{"root":["./src/app.tsx","./src/api.ts","./src/main.tsx","./src/sounds.ts","./src/store.tsx","./src/voice.ts","./src/components/confetti.tsx","./src/pages/gamepage.tsx","./src/pages/leaderboardpage.tsx","./src/pages/loginpage.tsx","./src/pages/profilepage.tsx"],"version":"5.9.3"}

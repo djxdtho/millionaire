@@ -1,0 +1,8 @@
+node_modules/
+dist/
+.env
+*.db
+be-err.log
+be-out.log
+fe-err.log
+fe-out.log
