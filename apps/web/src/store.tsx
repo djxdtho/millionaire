@@ -1,54 +1,68 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react'
-import { getMe } from './api'
+import { supabase } from './lib/supabase'
+import type { User as AuthUser } from '@supabase/supabase-js'
 
-interface User {
+interface AppUser {
   id: string
   email: string
   username: string
 }
 
 interface AuthContextType {
-  user: User | null
-  token: string | null
+  user: AppUser | null
   loading: boolean
-  setAuth: (token: string, user: User) => void
   logout: () => void
 }
 
 const AuthContext = createContext<AuthContextType>(null!)
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null)
-  const [token, setToken] = useState<string | null>(() => localStorage.getItem('token'))
+  const [user, setUser] = useState<AppUser | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    if (token) {
-      getMe().then((data) => {
-        setUser(data.user)
-      }).catch(() => {
-        localStorage.removeItem('token')
-        setToken(null)
-      }).finally(() => setLoading(false))
-    } else {
-      setLoading(false)
-    }
-  }, [token])
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        fetchProfile(session.user)
+      } else {
+        setLoading(false)
+      }
+    })
 
-  function setAuth(newToken: string, newUser: User) {
-    localStorage.setItem('token', newToken)
-    setToken(newToken)
-    setUser(newUser)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event: string, session) => {
+      if (session?.user) {
+        fetchProfile(session.user)
+      } else {
+        setUser(null)
+        if (!loading) setLoading(false)
+      }
+    })
+
+    return () => subscription.unsubscribe()
+  }, [])
+
+  async function fetchProfile(authUser: AuthUser) {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('username')
+      .eq('id', authUser.id)
+      .single()
+
+    setUser({
+      id: authUser.id,
+      email: authUser.email!,
+      username: profile?.username || authUser.email?.split('@')[0] || 'Player',
+    })
+    setLoading(false)
   }
 
-  function logout() {
-    localStorage.removeItem('token')
-    setToken(null)
+  async function logout() {
+    await supabase.auth.signOut()
     setUser(null)
   }
 
   return (
-    <AuthContext.Provider value={{ user, token, loading, setAuth, logout }}>
+    <AuthContext.Provider value={{ user, loading, logout }}>
       {children}
     </AuthContext.Provider>
   )

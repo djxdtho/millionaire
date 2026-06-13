@@ -1,10 +1,10 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../store'
 import { login, register } from '../api'
 
 export default function LoginPage() {
-  const { setAuth, user } = useAuth()
+  const { user } = useAuth()
   const navigate = useNavigate()
   const [mode, setMode] = useState<'login' | 'register'>('login')
   const [email, setEmail] = useState('')
@@ -12,24 +12,44 @@ export default function LoginPage() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [registered, setRegistered] = useState(false)
 
-  if (user) { navigate('/', { replace: true }); return null }
+  useEffect(() => {
+    if (user) navigate('/', { replace: true })
+  }, [user, navigate])
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setError('')
     setLoading(true)
     try {
-      const data = mode === 'login'
-        ? await login(email, password)
-        : await register(email, username, password)
-      setAuth(data.token, data.user)
-      navigate('/')
+      if (mode === 'login') {
+        await login(email, password)
+        navigate('/')
+      } else {
+        await register(email, username, password)
+        setRegistered(true)
+      }
     } catch (err: any) {
       setError(err.message)
     } finally {
       setLoading(false)
     }
+  }
+
+  if (registered) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <div className="card-dark p-8 w-full max-w-md text-center animate-fade-in">
+          <p className="text-4xl mb-4">🎉</p>
+          <h2 className="text-xl font-bold text-white mb-2">Account Created!</h2>
+          <p className="text-gray-400 mb-6">You can now log in.</p>
+          <button onClick={() => { setMode('login'); setRegistered(false) }} className="btn-gold">
+            Go to Login
+          </button>
+        </div>
+      </div>
+    )
   }
 
   return (

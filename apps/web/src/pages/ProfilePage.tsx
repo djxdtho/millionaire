@@ -14,7 +14,7 @@ interface GameRecord {
   score: number
   level_reached: number
   questions_answered: number
-  won: number
+  won: boolean
   played_at: string
 }
 

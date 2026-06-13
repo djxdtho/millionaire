@@ -7,7 +7,7 @@ interface LeaderboardEntry {
   score: number
   level_reached: number
   games_played: number
-  won_million: number
+  won_million: boolean
 }
 
 export default function LeaderboardPage() {
